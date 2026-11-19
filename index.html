@@ -13,7 +13,9 @@
 <aside class="sidebar"><div class="navlabel">Workspace</div><nav>
 <button class="nav active" data-view="dashboard"><span class="ico">▦</span>Dashboard</button><button class="nav" data-view="control"><span class="ico">🧭</span>Main Control</button><button class="nav" data-view="chat"><span class="ico">💬</span>Agent Chat</button><button class="nav" data-view="agents"><span class="ico">◉</span>Agent Management</button><button class="nav" data-view="projects"><span class="ico">▤</span>Project Files</button><button class="nav" data-view="workflow"><span class="ico">⇄</span>Workflow Center</button><button class="nav" data-view="knowledge"><span class="ico">▣</span>Knowledge Base</button><button class="nav" data-view="qc"><span class="ico">✓</span>Quality Control</button></nav><div class="note" style="margin-top:15px">Data prototipe disimpan di browser perangkat ini. Belum tersinkron antarperangkat.</div></aside>
 <main class="main">
-<section id="dashboard" class="view"><div class="heading"><div><div class="eyebrow">Command center</div><h1>Main Control Room</h1><p class="muted">Pusat kendali proyek video editing dan koordinasi agent spesialis.</p></div><button class="btn" onclick="switchView('chat')">Buka Agent Chat</button></div>
+<section id="dashboard" class="view"><div class="heading"><div><div class="eyebrow">Command center</div><h1>Main Control Room</h1><p class="muted">Pusat kendali proyek video editing dan koordinasi agent spesialis.</p></div><button class="btn" onclick="switchView('chat')">Buka <div id="backendStatus" style="margin:12px 0;color:#9aa0b2;">
+  Backend: Checking connection...
+</div> Agent Chat</button></div>
 <div class="grid"><div class="panel"><div class="metric">04</div><div class="metriclabel">Agent spesialis dirancang</div></div><div class="panel"><div class="metric">01</div><div class="metriclabel">AI Orchestrator</div></div><div class="panel"><div class="metric">01</div><div class="metriclabel">Proyek aktif</div></div><div class="panel"><div class="metric">0%</div><div class="metriclabel">Integrasi otomatis — belum aktif</div></div></div>
 <div class="cols"><div class="panel"><h2>Alur produksi</h2><div class="flow"><span class="step">Reference</span><span class="arrow">→</span><span class="step">Storyboard</span><span class="arrow">→</span><span class="step">Blueprint</span><span class="arrow">→</span><span class="step">CapCut</span><span class="arrow">→</span><span class="step">QC</span></div><p class="muted small" style="margin-top:12px">Setiap tahap menghasilkan output yang menjadi input tahap berikutnya.</p></div><div class="panel"><h2>Proyek aktif</h2><b>Reference Video — 160 detik</b><p class="muted small">Target: mempelajari gaya editing dan menghasilkan Editing Blueprint v1.0.</p><span class="agenttag">Tahap: transkrip & storyboard</span></div></div>
 <div class="panel" style="margin-top:14px"><h2>Ruangan kerja</h2><div class="roomlist" id="roomCards"></div></div></section>
@@ -50,11 +52,23 @@ document.getElementById('filePick').onchange=e=>{const f=[...e.target.files];doc
 const API_URL = "https://ai-video-editor-api.abang-harun-yahya-09.workers.dev";
 
 async function checkBackend() {
+  const statusElement = document.getElementById("backendStatus");
+
   try {
     const response = await fetch(`${API_URL}/api/status`);
     const data = await response.json();
-    console.log( data);
+
+    if (statusElement) {
+      statusElement.textContent = "Backend: Online";
+      statusElement.style.color = "#4ade80";
+    }
+
   } catch (error) {
+    if (statusElement) {
+      statusElement.textContent = "Backend: Offline";
+      statusElement.style.color = "#f87171";
+    }
+
     console.error("Backend connection failed:", error);
   }
 }
