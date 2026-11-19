@@ -42,7 +42,63 @@ document.getElementById('qcList').innerHTML=tasks.map((t,i)=>`<label class="task
 function openRoom(id){setRoom(id);switchView('chat')};function setRoom(id){activeRoom=id;document.getElementById('chatTitle').textContent=rooms.find(r=>r[0]===id)?.[2]||'Agent Chat';renderChat()}
 function renderChat(){const data=get('chat',{}),arr=data[activeRoom]||[];const box=document.getElementById('messages');box.innerHTML=arr.length?arr.map(m=>`<div class="msg ${m.role==='user'?'user':''}"><div class="who">${m.role==='user'?'YOU':m.who}</div>${escapeHtml(m.text)}</div>`).join(''):'<div class="empty">Belum ada pesan di ruangan ini. Mulai dengan mengirim instruksi atau catatan.</div>';box.scrollTop=box.scrollHeight}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function sendMessage(){const el=document.getElementById('chatInput'),v=el.value.trim();if(!v)return;const data=get('chat',{});data[activeRoom]=data[activeRoom]||[];data[activeRoom].push({role:'user',who:'YOU',text:v});put('chat',data);el.value='';renderChat();const acts=get('activity',[]);acts.unshift(new Date().toLocaleString('id-ID')+' — Pesan dicatat di '+(rooms.find(r=>r[0]===activeRoom)?.[2]||activeRoom));put('activity',acts.slice(0,30))}
+async function sendMessage(){
+  const el = document.getElementById('chatInput');
+  const v = el.value.trim();
+  if(!v) return;
+
+  const roomId = activeRoom;
+
+  const data = get('chat',{});
+  data[roomId] = data[roomId] || [];
+  data[roomId].push({role:'user',who:'YOU',text:v});
+  put('chat',data);
+
+  el.value='';
+  renderChat();
+
+  try {
+    const response = await fetch(`${API_URL}/api/chat`, {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({message:v})
+    });
+
+    const result = await response.json();
+
+    if(!response.ok){
+      throw new Error(result.error || 'Request gagal');
+    }
+
+    const chat = get('chat',{});
+    chat[roomId] = chat[roomId] || [];
+    chat[roomId].push({
+      role:'assistant',
+      who:'AI VIDEO EDITOR',
+      text:result.reply
+    });
+    put('chat',chat);
+    renderChat();
+
+  } catch(error) {
+    const chat = get('chat',{});
+    chat[roomId] = chat[roomId] || [];
+    chat[roomId].push({
+      role:'assistant',
+      who:'SYSTEM',
+      text:'Gagal menghubungi backend: '+error.message
+    });
+    put('chat',chat);
+    renderChat();
+    console.error(error);
+  }
+
+  const acts = get('activity',[]);
+  acts.unshift(new Date().toLocaleString('id-ID')+' — Chat dikirim ke backend');
+  put('activity',acts.slice(0,30));
+}
 function clearChat(){if(confirm('Hapus seluruh riwayat chat lokal pada browser ini?')){put('chat',{});renderChat()}}
 function saveBrief(){put('brief',document.getElementById('brief').value);const a=get('activity',[]);a.unshift(new Date().toLocaleString('id-ID')+' — Brief proyek disimpan');put('activity',a.slice(0,30));renderActivity();alert('Brief tersimpan di browser ini.')}
 document.getElementById('brief').value=get('brief','');function renderActivity(){const a=get('activity',[]);document.getElementById('activity').innerHTML=a.length?a.map(x=>`<div class="task">${escapeHtml(x)}</div>`).join(''):'<div class="empty">Belum ada aktivitas tersimpan.</div>'}
