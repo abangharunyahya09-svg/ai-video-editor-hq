@@ -46,4 +46,18 @@ function saveBrief(){put('brief',document.getElementById('brief').value);const a
 document.getElementById('brief').value=get('brief','');function renderActivity(){const a=get('activity',[]);document.getElementById('activity').innerHTML=a.length?a.map(x=>`<div class="task">${escapeHtml(x)}</div>`).join(''):'<div class="empty">Belum ada aktivitas tersimpan.</div>'}
 function saveKnowledge(){const v=document.getElementById('knowledgeInput').value.trim();if(!v)return;const a=get('knowledge',[]);a.unshift(v);put('knowledge',a);document.getElementById('knowledgeInput').value='';renderKnowledge()};function renderKnowledge(){document.getElementById('knowledgeList').innerHTML=get('knowledge',[]).map(x=>`<div class="task">${escapeHtml(x)}</div>`).join('')||'<div class="empty">Belum ada catatan tambahan.</div>'};renderKnowledge();renderActivity();
 document.getElementById('filePick').onchange=e=>{const f=[...e.target.files];document.getElementById('fileList').innerHTML=f.map(x=>`<div class="task">📄 ${escapeHtml(x.name)} <span class="muted">(${(x.size/1048576).toFixed(2)} MB)</span></div>`).join('')||'Belum ada file dipilih.'};
+</script><script>
+const API_URL = "https://ai-video-editor-api.abang-harun-yahya-09.workers.dev";
+
+async function checkBackend() {
+  try {
+    const response = await fetch(`${API_URL}/api/status`);
+    const data = await response.json();
+    console.log("AI VIDEO EDITOR BACKEND:", data);
+  } catch (error) {
+    console.error("Backend connection failed:", error);
+  }
+}
+
+checkBackend();
 </script></body></html>
